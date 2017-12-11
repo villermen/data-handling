@@ -2,6 +2,7 @@
     "name": "villermen/data-handling",
     "description": "Library for general data sanitization and validation.",
     "type": "library",
+    "license": "MIT",
     "require": {
         "php": ">=5.6"
     },
