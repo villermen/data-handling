@@ -143,7 +143,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("./fixtures/../fixtures//directory/file.txt"));
 
         try {
-            DataHandling::formatAndResolvePath("fixtures/directory/doesnotexist.txt", true);
+            DataHandling::formatAndResolvePath("fixtures/directory/doesnotexist.txt");
             self::fail();
         } catch (DataHandlingException $exception) {
         }
