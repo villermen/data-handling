@@ -51,17 +51,20 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         try {
             DataHandling::validateInRange(5.1, 1, 5);
             self::fail();
-        } catch (DataHandlingException $exception) { };
+        } catch (DataHandlingException $exception) {
+        }
 
         try {
             DataHandling::validateInRange(0.99999, 1, 5);
             self::fail();
-        } catch (DataHandlingException $exception) { };
+        } catch (DataHandlingException $exception) {
+        }
 
         try {
             DataHandling::validateInRange(null, 1, 5) ;
             self::fail();
-        } catch (DataHandlingException $exception) { };
+        } catch (DataHandlingException $exception) {
+        }
     }
 
     public function testValidateInArray()
@@ -72,12 +75,14 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         try {
             DataHandling::validateInArray(4, [ 5, 0, 5]);
             self::fail();
-        } catch (DataHandlingException $exception) { };
+        } catch (DataHandlingException $exception) {
+        }
 
         try {
             DataHandling::validateInArray(null, [ 5, null, 5]);
             self::fail();
-        } catch (DataHandlingException $exception) { };
+        } catch (DataHandlingException $exception) {
+        }
     }
 
     public function testSanitizeUrlParts()
@@ -118,5 +123,29 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertFalse(DataHandling::startsWith("somestring/", "some/s"));
         self::assertTrue(DataHandling::startsWithAlphanumeric(" So meString", "s OmEs"));
         self::assertFalse(DataHandling::startsWithAlphanumeric(" So meString", "son"));
+    }
+
+    public function testFormatPathAndDirectory()
+    {
+        chdir(__DIR__);
+
+        // Without resolving
+        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/to/file"));
+        self::assertEquals("/path/to/file", DataHandling::formatPathOrUri("/././//.///path//to\\file"));
+        self::assertEquals("../path/to/file", DataHandling::formatPathOrUri("../path//to\\file"));
+        self::assertEquals("/path/to/file", DataHandling::formatPathOrUri("/././//.//../path//to\\file"));
+        self::assertEquals("../../path/file", DataHandling::formatPathOrUri("../../path//to/..\\file"));
+        self::assertEquals("/file", DataHandling::formatPathOrUri("/././//.//path//to/..\\..\\file"));
+
+        // With resolving
+        $sanitizedWorkingDirectory = DataHandling::formatAndResolveDirectory(__DIR__);
+        self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("fixtures/directory/file.txt"));
+        self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("./fixtures/../fixtures//directory/file.txt"));
+
+        try {
+            DataHandling::formatAndResolvePath("fixtures/directory/doesnotexist.txt", true);
+            self::fail();
+        } catch (DataHandlingException $exception) {
+        }
     }
 }

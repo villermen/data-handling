@@ -410,4 +410,124 @@ class DataHandling
 
         return self::startsWith($string, $options);
     }
+
+    /**
+     * Formats a file path to a uniform representation.
+     * Multiple paths can be given and will be concatenated.
+     *
+     * @param string[] $paths
+     * @return string
+     */
+    public static function formatPathOrUri(...$paths)
+    {
+        // Only use path parts that have a value so implode won't cause relative parts to become absolute
+        $path = implode("/", array_filter($paths));
+        $path = str_replace("\\", "/", $path);
+
+        // Remove optional scheme to add back later
+        $scheme = "";
+        $path = preg_replace_callback("/^[a-z0-9+\.\-]+:\/\//", function ($matches) use (&$scheme) {
+            $scheme = $matches[0];
+            return "";
+        }, $path);
+
+        // Remove self-referencing path parts (resolving already takes care of this)
+        $replacements = 0;
+        do {
+            $path = str_replace(["/./", "//"], "/", $path, $replacements);
+        } while ($replacements > 0);
+
+        // Replace parent directory paths if possible
+        $pathParts = explode("/", $path);
+
+        $ignoredParts = 0;
+        do {
+            $parentKey = array_search("..", array_slice($pathParts, $ignoredParts, null, true));
+
+            // Don't remove .. if it starts the path
+            if ($parentKey > 0) {
+                switch ($pathParts[$parentKey - 1]) {
+                    // Don't remove root / but remove ..'s directly after it
+                    case "":
+                        unset($pathParts[$parentKey]);
+                        break;
+
+                    // Keep consecutive ..'s (only possible if the path starts with them)
+                    case "..":
+                        $ignoredParts++;
+                        break;
+
+                    // Collapse
+                    default:
+                        unset($pathParts[$parentKey - 1]);
+                        unset($pathParts[$parentKey]);
+                        break;
+                }
+
+                $pathParts = array_values($pathParts);
+            } else {
+                $ignoredParts++;
+            }
+        } while ($parentKey !== false);
+
+        $path = implode("/", $pathParts);
+
+        return $scheme . $path;
+    }
+
+    /**
+     * Resolves and formats a path.
+     *
+     * @param string[] $paths
+     * @return string
+     * @throws DataHandlingException
+     */
+    public static function formatAndResolvePath(...$paths)
+    {
+        // Only use path parts that have a value so implode won't cause relative parts to become absolute
+        $path = implode("/", array_filter($paths));
+        $path = str_replace("\\", "/", $path);
+
+        $path = realpath($path);
+
+        if (!$path) {
+            throw new DataHandlingException("Given path does not exist.");
+        }
+
+        return self::formatPathOrUri($path);
+    }
+
+    /**
+     * Formats a directory path to a uniform representation.
+     * Basically formatPath but with a trailing slash.
+     *
+     * @param string[] $paths
+     * @return string
+     */
+    public static function formatDirectory(...$paths)
+    {
+        $directory = call_user_func_array("self::formatPath", func_get_args());
+
+        if ($directory) {
+            $directory = rtrim($directory, "/") . "/";
+        }
+
+        return $directory;
+    }
+
+    /**
+     * @param string[] ...$paths
+     * @return string
+     * @throws DataHandlingException
+     */
+    public static function formatAndResolveDirectory(...$paths)
+    {
+        $directory = call_user_func_array("self::formatAndResolvePath", func_get_args());
+
+        if ($directory) {
+            $directory = rtrim($directory, "/") . "/";
+        }
+
+        return $directory;
+    }
 }
