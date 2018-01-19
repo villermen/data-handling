@@ -130,12 +130,12 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         chdir(__DIR__);
 
         // Without resolving
-        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/to/file"));
-        self::assertEquals("/path/to/file", DataHandling::formatPathOrUri("/././//.///path//to\\file"));
-        self::assertEquals("../path/to/file", DataHandling::formatPathOrUri("../path//to\\file"));
-        self::assertEquals("/path/to/file", DataHandling::formatPathOrUri("/././//.//../path//to\\file"));
-        self::assertEquals("../../path/file", DataHandling::formatPathOrUri("../../path//to/..\\file"));
-        self::assertEquals("/file", DataHandling::formatPathOrUri("/././//.//path//to/..\\..\\file"));
+        self::assertEquals("path/to/file", DataHandling::formatPath("path/to/file"));
+        self::assertEquals("/path/to/file", DataHandling::formatPath("/././//.///path//to\\file"));
+        self::assertEquals("../path/to/file", DataHandling::formatPath("../path//to\\file"));
+        self::assertEquals("/path/to/file", DataHandling::formatPath("/././//.//../path//to\\file"));
+        self::assertEquals("../../path/file", DataHandling::formatPath("../../path//to/..\\file"));
+        self::assertEquals("/file", DataHandling::formatPath("/././//.//path//to/..\\..\\file"));
 
         // With resolving
         $sanitizedWorkingDirectory = DataHandling::formatAndResolveDirectory(__DIR__);
@@ -149,8 +149,8 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         }
 
         // Path combination
-        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path", "to", "file"));
-        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/", "to/file"));
-        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/", "/to//file"));
+        self::assertEquals("path/to/file", DataHandling::formatPath("path", "to", "file"));
+        self::assertEquals("path/to/file", DataHandling::formatPath("path/", "to/file"));
+        self::assertEquals("path/to/file", DataHandling::formatPath("path/", "/to//file"));
     }
 }

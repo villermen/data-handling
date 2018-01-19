@@ -418,7 +418,7 @@ class DataHandling
      * @param string[] $paths
      * @return string
      */
-    public static function formatPathOrUri(...$paths)
+    public static function formatPath(...$paths)
     {
         // Only use path parts that have a value so implode won't cause relative parts to become absolute
         $path = implode("/", array_filter($paths));
@@ -494,7 +494,7 @@ class DataHandling
             throw new DataHandlingException("Given path does not exist.");
         }
 
-        return self::formatPathOrUri($path);
+        return self::formatPath($path);
     }
 
     /**
