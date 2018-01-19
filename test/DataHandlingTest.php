@@ -147,5 +147,10 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
             self::fail();
         } catch (DataHandlingException $exception) {
         }
+
+        // Path combination
+        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path", "to", "file"));
+        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/", "to/file"));
+        self::assertEquals("path/to/file", DataHandling::formatPathOrUri("path/", "/to//file"));
     }
 }
