@@ -215,5 +215,6 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertFalse(DataHandling::matchesFilter(["anything"], []));
 
         self::assertTrue(DataHandling::matchesFilterInsensitive("oNE\\TwO", "onE*t*"));
+        self::assertFalse(DataHandling::matchesFilter("oNE\\TwO", "onE*t*"));
     }
 }
