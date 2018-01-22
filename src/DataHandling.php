@@ -481,7 +481,22 @@ class DataHandling
         }, $uri);
     }
 
-    // TODO: encodeFullUri
+    /**
+     * Encodes a full URI, leaving the slashes and scheme intact.
+     *
+     * @param string $uri
+     * @return string
+     */
+    public static function encodeUri($uri)
+    {
+        $uri = self::removeSchemeFromUri($uri, $scheme);
+        $uri = rawurlencode($uri);
+
+        // Decode slashes
+        $uri = str_replace("%2F", "/", $uri);
+
+        return $scheme . $uri;
+    }
 
     /**
      * Formats a file path to a uniform representation.

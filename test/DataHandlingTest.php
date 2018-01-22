@@ -235,4 +235,9 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("test.org", DataHandling::removeSchemeFromUri("some+weird-protocol://test.org", $scheme));
         self::assertEquals("some+weird-protocol://", $scheme);
     }
+
+    public function testEncodeUri()
+    {
+        self::assertEquals("https://test.com/%E2%82%AC%27%20%C3%A9%2B%C3%BF%E2%82%AC", DataHandling::encodeUri("https://test.com/€' é+ÿ€"));
+    }
 }
