@@ -465,6 +465,25 @@ class DataHandling
     }
 
     /**
+     * Removes the scheme (e.g. ftp://) from an URI, and returns the stripped URI.
+     *
+     * @param string $uri
+     * @param string $scheme Will contain the full stripped scheme (including the ://), or an empty string if there was no scheme in the given URI.
+     * @return string
+     */
+    public static function removeSchemeFromUri($uri, &$scheme = "")
+    {
+        $scheme = "";
+
+        return preg_replace_callback("/^[a-z0-9+\.\-]+:\/\//", function ($matches) use (&$scheme) {
+            $scheme = $matches[0];
+            return "";
+        }, $uri);
+    }
+
+    // TODO: encodeFullUri
+
+    /**
      * Formats a file path to a uniform representation.
      * Multiple paths can be given and will be concatenated.
      *
@@ -475,13 +494,7 @@ class DataHandling
     public static function formatPath($pathOrPaths, ...$additionalPaths)
     {
         $path = rawurldecode(self::mergePaths($pathOrPaths, ...$additionalPaths));
-
-        // Remove optional scheme to add back later
-        $scheme = "";
-        $path = preg_replace_callback("/^[a-z0-9+\.\-]+:\/\//", function ($matches) use (&$scheme) {
-            $scheme = $matches[0];
-            return "";
-        }, $path);
+        $path = self::removeSchemeFromUri($path, $scheme);
 
         // Remove self-referencing path parts (resolving already takes care of this)
         $replacements = 0;

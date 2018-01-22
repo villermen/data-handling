@@ -217,4 +217,22 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertTrue(DataHandling::matchesFilterInsensitive("oNE\\TwO", "onE*t*"));
         self::assertFalse(DataHandling::matchesFilter("oNE\\TwO", "onE*t*"));
     }
+
+    public function testRemoveSchemeFromUri()
+    {
+        self::assertEquals("test.com/test", DataHandling::removeSchemeFromUri("https://test.com/test", $scheme));
+        self::assertEquals("https://", $scheme);
+
+        self::assertEquals("test.com/test://test", DataHandling::removeSchemeFromUri("test.com/test://test", $scheme));
+        self::assertEquals("", $scheme);
+
+        self::assertEquals("c:/test/test", DataHandling::removeSchemeFromUri("c:/test/test", $scheme));
+        self::assertEquals("", $scheme);
+
+        self::assertEquals("HTTPS://test/test", DataHandling::removeSchemeFromUri("HTTPS://test/test", $scheme));
+        self::assertEquals("", $scheme);
+
+        self::assertEquals("test.org", DataHandling::removeSchemeFromUri("some+weird-protocol://test.org", $scheme));
+        self::assertEquals("some+weird-protocol://", $scheme);
+    }
 }
