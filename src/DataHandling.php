@@ -474,7 +474,7 @@ class DataHandling
      */
     public static function formatPath($pathOrPaths, ...$additionalPaths)
     {
-        $path = self::mergePaths($pathOrPaths, ...$additionalPaths);
+        $path = rawurldecode(self::mergePaths($pathOrPaths, ...$additionalPaths));
 
         // Remove optional scheme to add back later
         $scheme = "";
@@ -537,7 +537,7 @@ class DataHandling
      */
     public static function formatAndResolvePath($pathOrPaths, ...$additionalPaths)
     {
-        $path = self::mergePaths($pathOrPaths, ...$additionalPaths);
+        $path = rawurldecode(self::mergePaths($pathOrPaths, ...$additionalPaths));
         $path = realpath($path);
 
         if (!$path) {
@@ -602,6 +602,7 @@ class DataHandling
     public static function makePathRelative($path, $rootDirectory)
     {
         $rootDirectory = self::formatDirectory($rootDirectory);
+        $path = self::formatPath($path);
 
         if (!self::startsWith(self::formatDirectory($path), $rootDirectory)) {
             throw new DataHandlingException("Path is not part of the given root directory.");

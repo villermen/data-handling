@@ -144,6 +144,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         $sanitizedWorkingDirectory = DataHandling::formatAndResolveDirectory(__DIR__);
         self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("fixtures/directory/file.txt"));
         self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("./fixtures/../fixtures//directory/file.txt"));
+        self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/€' é+ÿ€.txt", DataHandling::formatAndResolvePath("fixtures/directory/%E2%82%AC'%20%C3%A9+%C3%BF€.txt"));
 
         try {
             DataHandling::formatAndResolvePath("fixtures/directory/doesnotexist.txt");
@@ -169,6 +170,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("", DataHandling::makePathRelative("/path/to/file/", "/path/to/file"));
         self::assertEquals("", DataHandling::makePathRelative("/path/to/file", "/path/to/file/"));
         self::assertEquals("", DataHandling::makePathRelative("/", "/"));
+        self::assertEquals("file", DataHandling::makePathRelative("/path/../path/to/./file", "/path/to/../to/./"));
 
         try {
             DataHandling::makePathRelative("/path/to", "/path/to/file");
