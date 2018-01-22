@@ -648,4 +648,40 @@ class DataHandling
 
         return $directory;
     }
+
+    /**
+     * Returns a suffixed and shortened indication of an amount of bytes.
+     *
+     * @param int $size
+     * @return string
+     */
+    public static function bytesize($size)
+    {
+        $suffixes = [
+            "B", "KiB", "MiB", "GiB", "TiB" //, "PiB", "EiB", "ZiB", "YiB"
+        ];
+
+        $level = 1;
+        for ($exponent = 0; $exponent < count($suffixes); $exponent++) {
+            $nextLevel = pow(1024, $exponent + 1);
+
+            if ($nextLevel > $size) {
+                $smallSize = $size / $level;
+
+                if ($smallSize < 10) {
+                    $decimals = 2;
+                } elseif ($smallSize < 100) {
+                    $decimals = 1;
+                } else {
+                    $decimals = 0;
+                }
+
+                return round($smallSize, $decimals) . " " . $suffixes[$exponent];
+            }
+
+            $level = $nextLevel;
+        }
+
+        return "Large.";
+    }
 }

@@ -178,4 +178,13 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         } catch (DataHandlingException $exception) {
         }
     }
+
+    public function testBytesize()
+    {
+        self::assertEquals("1023 B", DataHandling::bytesize(1023));
+        self::assertEquals("1 KiB", DataHandling::bytesize(1024));
+        self::assertEquals("1.34 GiB", DataHandling::bytesize(1370 * 1024 * 1024));
+        self::assertEquals("347 MiB", DataHandling::bytesize(354919 * 1024));
+        self::assertEquals("0 B", DataHandling::bytesize(0));
+    }
 }
