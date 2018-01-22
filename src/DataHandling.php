@@ -310,6 +310,8 @@ class DataHandling
         }
     }
 
+    // TODO: Variadicality for all!
+
     /**
      * Explodes on the following characters: ;,>|/
      * Performs sanitization on each element.
@@ -461,14 +463,13 @@ class DataHandling
      * Formats a file path to a uniform representation.
      * Multiple paths can be given and will be concatenated.
      *
-     * @param string[] $paths
+     * @param string|string[] $pathOrPaths
+     * @param string[] $additionalPaths
      * @return string
      */
-    public static function formatPath(...$paths)
+    public static function formatPath($pathOrPaths, ...$additionalPaths)
     {
-        // Only use path parts that have a value so implode won't cause relative parts to become absolute
-        $path = implode("/", array_filter($paths));
-        $path = str_replace("\\", "/", $path);
+        $path = self::mergePaths($pathOrPaths, ...$additionalPaths);
 
         // Remove optional scheme to add back later
         $scheme = "";
@@ -524,16 +525,14 @@ class DataHandling
     /**
      * Resolves and formats a path.
      *
-     * @param string[] $paths
+     * @param string|string[] $pathOrPaths
+     * @param string[] $additionalPaths
      * @return string
      * @throws DataHandlingException
      */
-    public static function formatAndResolvePath(...$paths)
+    public static function formatAndResolvePath($pathOrPaths, ...$additionalPaths)
     {
-        // Only use path parts that have a value so implode won't cause relative parts to become absolute
-        $path = implode("/", array_filter($paths));
-        $path = str_replace("\\", "/", $path);
-
+        $path = self::mergePaths($pathOrPaths, ...$additionalPaths);
         $path = realpath($path);
 
         if (!$path) {
@@ -541,6 +540,50 @@ class DataHandling
         }
 
         return self::formatPath($path);
+    }
+
+    /**
+     * Merges path parts into one path.
+     * Only the first argument can cause the path to become absolute.
+     *
+     * @param string|string[] $pathOrPaths
+     * @param string[] $additionalPaths
+     * @return string
+     */
+    public static function mergePaths($pathOrPaths, ...$additionalPaths)
+    {
+        if (is_array($pathOrPaths)) {
+            $paths = $pathOrPaths;
+        } else {
+            $paths = array_merge([$pathOrPaths], $additionalPaths);
+        }
+
+        $paths = array_values($paths);
+
+        $prefix = "";
+        $suffix = "";
+        if (count($paths) > 0) {
+            // Save root for first path
+            if (self::startsWith($paths[0], "/", "\\")) {
+                $prefix = "/";
+            }
+
+            // Save separator for last path
+            if (self::endsWith($paths[count($paths) - 1], "/", "\\")) {
+                $suffix = "/";
+            }
+        }
+
+        // Remove leading and trailing separators from parts to not end up with repeated separators
+        array_walk($paths, function(&$path) {
+            $path = str_replace("\\", "/", $path);
+            $path = trim($path, "/");
+        });
+
+        // Remove empty parts to not end up with repeated separators
+        $paths = array_filter($paths);
+
+        return $prefix . implode("/", $paths) . $suffix;
     }
 
     /**
