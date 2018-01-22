@@ -160,4 +160,20 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("/to/file", DataHandling::mergePaths("/", "/to/file"));
         self::assertEquals("", DataHandling::mergePaths([]));
     }
+
+    public function testMakePathRelative()
+    {
+        self::assertEquals("file", DataHandling::makePathRelative("/path/to/file", "/path/to"));
+        self::assertEquals("file", DataHandling::makePathRelative("/path/to/file", "/path/to/"));
+        self::assertEquals("", DataHandling::makePathRelative("/path/to/file", "/path/to/file"));
+        self::assertEquals("", DataHandling::makePathRelative("/path/to/file/", "/path/to/file"));
+        self::assertEquals("", DataHandling::makePathRelative("/path/to/file", "/path/to/file/"));
+        self::assertEquals("", DataHandling::makePathRelative("/", "/"));
+
+        try {
+            DataHandling::makePathRelative("/path/to", "/path/to/file");
+            self::fail();
+        } catch (DataHandlingException $exception) {
+        }
+    }
 }

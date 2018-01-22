@@ -592,6 +592,25 @@ class DataHandling
     }
 
     /**
+     * Makes given path relative to the given root directory.
+     *
+     * @param string $path
+     * @param string $rootDirectory
+     * @return string
+     * @throws DataHandlingException Thrown when the path is not part of the given root directory.
+     */
+    public static function makePathRelative($path, $rootDirectory)
+    {
+        $rootDirectory = self::formatDirectory($rootDirectory);
+
+        if (!self::startsWith(self::formatDirectory($path), $rootDirectory)) {
+            throw new DataHandlingException("Path is not part of the given root directory.");
+        }
+
+        return substr_replace($path, "", 0, strlen($rootDirectory));
+    }
+
+    /**
      * Formats a directory path to a uniform representation.
      * Basically formatPath but with a trailing slash.
      *
