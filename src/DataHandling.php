@@ -159,16 +159,16 @@ class DataHandling
      * Arguments are joined by slashes.
      * If an array of parts is given as the first argument, each one will be processed and returned as one string with slashes between parts.
      *
-     * @param string|string[] $urlPart1OrUrlParts An array of parts or a single part.
-     * @param string $urlPart2,... Additional url parts, if the first argument is not an array.
+     * @param string|string[] $urlPartOrUrlParts An array of parts or a single part.
+     * @param string[] $additionalUrlParts Additional url parts, if the first argument is not an array.
      * @return string
      */
-    public static function sanitizeUrlParts($urlPart1OrUrlParts, $urlPart2 = null)
+    public static function sanitizeUrlParts($urlPartOrUrlParts, ...$additionalUrlParts)
     {
-        if (is_array($urlPart1OrUrlParts)) {
-            $urlParts = $urlPart1OrUrlParts;
+        if (is_array($urlPartOrUrlParts)) {
+            $urlParts = $urlPartOrUrlParts;
         } else {
-            $urlParts = func_get_args();
+            $urlParts = array_merge([$urlPartOrUrlParts], $additionalUrlParts);
         }
 
         $sanitizedUrlParts = [];
@@ -310,13 +310,11 @@ class DataHandling
         }
     }
 
-    // TODO: Variadicality for all!
-
     /**
-     * Explodes on the following characters: ;,>|/
-     * Performs sanitization on each element.
-     * @param $string
-     * @param $characters
+     * Explodes a string into an array after performing sanitization on each element.
+     *
+     * @param string $string
+     * @param string $characters
      * @return string[]
      */
     public static function explode($string, $characters = ";>|/\\<")
@@ -347,7 +345,13 @@ class DataHandling
         return $elements;
     }
 
-
+    /**
+     * Implodes an array into a string after performing sanitization on each element.
+     *
+     * @param string[] $array
+     * @param string $separator
+     * @return string
+     */
     public static function implode($array, $separator = " > ")
     {
         if ($array === null) {
@@ -370,16 +374,16 @@ class DataHandling
      * Returns whether the value of the given string starts with any of the supplied options.
      *
      * @param string $string
-     * @param string|string[] $option1OrOptionsArray A string depicting a first
-     * @param string $option2,... Additional options, if the first option is a string.
+     * @param string|string[] $optionOrOptions A string depicting a first
+     * @param string[] $additionalOptions Additional options, if the first option is a string.
      * @return bool
      */
-    public static function startsWith($string, $option1OrOptionsArray, $option2 = null)
+    public static function startsWith($string, $optionOrOptions, ...$additionalOptions)
     {
-        if (is_array($option1OrOptionsArray)) {
-            $options = $option1OrOptionsArray;
+        if (is_array($optionOrOptions)) {
+            $options = $optionOrOptions;
         } else {
-            $options = array_slice(func_get_args(), 1);
+            $options = array_merge([$optionOrOptions], $additionalOptions);
         }
 
         foreach($options as $option) {
@@ -396,7 +400,7 @@ class DataHandling
      *
      * @param string $string
      * @param string|string[] $optionOrOptions
-     * @param string[] ...$additionalOptions
+     * @param string[] $additionalOptions
      * @return bool
      */
     public static function endsWith($string, $optionOrOptions, ...$additionalOptions)
@@ -418,19 +422,20 @@ class DataHandling
      * Returns whether the alphanumeric value of the given string starts with any of the supplied options.
      *
      * @param $string
-     * @param string|string[] $option1OrOptionsArray A string depicting a first
-     * @param string $option2,... Additional options, if the first option is a string.
+     * @param string|string[] $optionOrOptions A string depicting a first
+     * @param string[] $additionalOptions Additional options, if the first option is a string.
      * @return bool
      */
-    public static function startsWithAlphanumeric($string, $option1OrOptionsArray, $option2 = null)
+    public static function startsWithAlphanumeric($string, $optionOrOptions, ...$additionalOptions)
     {
-        $string = self::sanitizeAlphanumeric($string);
-
-        if (is_array($option1OrOptionsArray)) {
-            $options = $option1OrOptionsArray;
+        if (is_array($optionOrOptions)) {
+            $options = $optionOrOptions;
         } else {
-            $options = array_slice(func_get_args(), 1);
+            $options = array_merge([$optionOrOptions], $additionalOptions);
         }
+
+        // Convert both string and options to alphanumeric
+        $string = self::sanitizeAlphanumeric($string);
         $options = array_map([ self::class, "sanitizeAlphanumeric"], $options);
 
         return self::startsWith($string, $options);
@@ -441,7 +446,7 @@ class DataHandling
      *
      * @param string $string
      * @param string|string[] $optionOrOptions
-     * @param string[] ...$additionalOptions
+     * @param string[] $additionalOptions
      * @return bool
      */
     public static function endsWithAlphanumeric($string, $optionOrOptions, ...$additionalOptions)
@@ -590,12 +595,13 @@ class DataHandling
      * Formats a directory path to a uniform representation.
      * Basically formatPath but with a trailing slash.
      *
-     * @param string[] $paths
+     * @param string|string[] $pathOrPaths
+     * @param string[] $additionalPaths
      * @return string
      */
-    public static function formatDirectory(...$paths)
+    public static function formatDirectory($pathOrPaths, ...$additionalPaths)
     {
-        $directory = call_user_func_array("self::formatPath", func_get_args());
+        $directory = self::formatPath($pathOrPaths, ...$additionalPaths);
 
         if ($directory) {
             $directory = rtrim($directory, "/") . "/";
@@ -605,13 +611,16 @@ class DataHandling
     }
 
     /**
-     * @param string[] ...$paths
+     * Resolves and formats a directory.
+     *
+     * @param string|string[] $pathOrPaths
+     * @param string[] $additionalPaths
      * @return string
      * @throws DataHandlingException
      */
-    public static function formatAndResolveDirectory(...$paths)
+    public static function formatAndResolveDirectory($pathOrPaths, ...$additionalPaths)
     {
-        $directory = call_user_func_array("self::formatAndResolvePath", func_get_args());
+        $directory = self::formatAndResolvePath($pathOrPaths, ...$additionalPaths);
 
         if ($directory) {
             $directory = rtrim($directory, "/") . "/";
