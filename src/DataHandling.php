@@ -655,7 +655,7 @@ class DataHandling
      * @param int $size
      * @return string
      */
-    public static function bytesize($size)
+    public static function formatBytesize($size)
     {
         $suffixes = [
             "B", "KiB", "MiB", "GiB", "TiB" //, "PiB", "EiB", "ZiB", "YiB"
@@ -683,5 +683,64 @@ class DataHandling
         }
 
         return "Large.";
+    }
+
+    /**
+     * Returns whether the given string matches against a filter.
+     * Filter can contain wildcard characters.
+     * Asterisk (*) matches anything.
+     * Question mark (?) matches precisely one character.
+     *
+     * @param string|string[] $stringOrStrings If multiple strings are given, all of them have to match any of the filters.
+     * @param string|string[] $filterOrFilters If multiple filters are given, true will be returned if any of them are matched.
+     * @return bool
+     */
+    public static function matchesFilter($stringOrStrings, $filterOrFilters)
+    {
+        $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
+        $filters = is_array($filterOrFilters) ? $filterOrFilters : [$filterOrFilters];
+
+        // Convert filters to regexes
+        array_walk($filters, function(&$filter) {
+            $filter = preg_quote($filter, "/");
+            $filter = str_replace(["\\*", "\\?"], [".*", "."], $filter);
+            $filter = "/^" . $filter . "$/";
+        });
+
+        foreach($strings as $string) {
+            $stringMatched = false;
+
+            foreach($filters as $filter) {
+                if (preg_match($filter, $string)) {
+                    $stringMatched = true;
+                    break;
+                }
+            }
+
+            if (!$stringMatched) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * matchesFilter, but case-insensitive.
+     *
+     * @param $stringOrStrings
+     * @param $filterOrFilters
+     * @return bool
+     * @see DataHandling::matchesFilter
+     */
+    public static function matchesFilterInsensitive($stringOrStrings, $filterOrFilters)
+    {
+        $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
+        $filters = is_array($filterOrFilters) ? $filterOrFilters : [$filterOrFilters];
+
+        $strings = array_map("strtoupper", $strings);
+        $filters = array_map("strtoupper", $filters);
+
+        return self::matchesFilter($strings, $filters);
     }
 }

@@ -179,12 +179,41 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testBytesize()
+    public function testFormatBytesize()
     {
-        self::assertEquals("1023 B", DataHandling::bytesize(1023));
-        self::assertEquals("1 KiB", DataHandling::bytesize(1024));
-        self::assertEquals("1.34 GiB", DataHandling::bytesize(1370 * 1024 * 1024));
-        self::assertEquals("347 MiB", DataHandling::bytesize(354919 * 1024));
-        self::assertEquals("0 B", DataHandling::bytesize(0));
+        self::assertEquals("1023 B", DataHandling::formatBytesize(1023));
+        self::assertEquals("1 KiB", DataHandling::formatBytesize(1024));
+        self::assertEquals("1.34 GiB", DataHandling::formatBytesize(1370 * 1024 * 1024));
+        self::assertEquals("347 MiB", DataHandling::formatBytesize(354919 * 1024));
+        self::assertEquals("0 B", DataHandling::formatBytesize(0));
+    }
+
+    public function testMatchesFilter()
+    {
+        self::assertTrue(DataHandling::matchesFilter("asdf", "*asdf"));
+        self::assertTrue(DataHandling::matchesFilter(" sdf", "*sdf"));
+        self::assertTrue(DataHandling::matchesFilter("file.txt", "*.txt"));
+        self::assertFalse(DataHandling::matchesFilter(" asdf", "asdf"));
+        self::assertTrue(DataHandling::matchesFilter(" asdf", "?asdf"));
+        self::assertTrue(DataHandling::matchesFilter("asdf", "as?f"));
+        self::assertFalse(DataHandling::matchesFilter("asdf", "asd?f"));
+        self::assertFalse(DataHandling::matchesFilter("", "?"));
+        self::assertTrue(DataHandling::matchesFilter("d", "*?"));
+        self::assertTrue(DataHandling::matchesFilter("anything", "*?"));
+        self::assertTrue(DataHandling::matchesFilter("one\\two", "one*t*"));
+        self::assertTrue(DataHandling::matchesFilter("one\\two", "*n*w?"));
+        self::assertTrue(DataHandling::matchesFilter("anything", "**"));
+        self::assertTrue(DataHandling::matchesFilter("", "*"));
+        self::assertTrue(DataHandling::matchesFilter("", "***"));
+        self::assertTrue(DataHandling::matchesFilter("", ""));
+
+        self::assertTrue(DataHandling::matchesFilter(["yasdf"], ["nope", "ya???"]));
+        self::assertFalse(DataHandling::matchesFilter(["asdf", "nope"], ["asd*", "nope?"]));
+        self::assertTrue(DataHandling::matchesFilter(["asdf", "nope"], ["asd*", "nop?"]));
+        self::assertTrue(DataHandling::matchesFilter([], []));
+        self::assertFalse(DataHandling::matchesFilter([""], []));
+        self::assertFalse(DataHandling::matchesFilter(["anything"], []));
+
+        self::assertTrue(DataHandling::matchesFilterInsensitive("oNE\\TwO", "onE*t*"));
     }
 }
