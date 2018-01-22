@@ -116,13 +116,16 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("irrelevant-textirrelevant-text---match-text--", substr($haystack, 0, $match[0]) . substr($haystack, $match[0] + $match[1]));
     }
 
-    public function testStartsWith()
+    public function testStartsAndEndsWith()
     {
         self::assertTrue(DataHandling::startsWith("some/String/", "some/S"));
         self::assertFalse(DataHandling::startsWith("some/string/", "some/S"));
         self::assertFalse(DataHandling::startsWith("somestring/", "some/s"));
         self::assertTrue(DataHandling::startsWithAlphanumeric(" So meString", "s OmEs"));
         self::assertFalse(DataHandling::startsWithAlphanumeric(" So meString", "son"));
+
+        self::assertTrue(DataHandling::endsWith("some/String/", "ing/"));
+        self::assertTrue(DataHandling::endsWithAlphanumeric("somestri Ng", "ing"));
     }
 
     public function testFormatPathAndDirectory()

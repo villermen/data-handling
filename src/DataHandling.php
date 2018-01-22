@@ -367,7 +367,7 @@ class DataHandling
     /**
      * Returns whether the value of the given string starts with any of the supplied options.
      *
-     * @param $string
+     * @param string $string
      * @param string|string[] $option1OrOptionsArray A string depicting a first
      * @param string $option2,... Additional options, if the first option is a string.
      * @return bool
@@ -390,6 +390,29 @@ class DataHandling
     }
 
     /**
+     * Returns whether the value of the given string ends with any of the supplied options.
+     *
+     * @param string $string
+     * @param string|string[] $optionOrOptions
+     * @param string[] ...$additionalOptions
+     * @return bool
+     */
+    public static function endsWith($string, $optionOrOptions, ...$additionalOptions)
+    {
+        if (is_array($optionOrOptions)) {
+            $options = $optionOrOptions;
+        } else {
+            $options = array_merge([$optionOrOptions], $additionalOptions);
+        }
+
+        array_walk($options, function(&$option) {
+            $option = strrev($option);
+        });
+
+        return self::startsWith(strrev($string), $options);
+    }
+
+    /**
      * Returns whether the alphanumeric value of the given string starts with any of the supplied options.
      *
      * @param $string
@@ -409,6 +432,29 @@ class DataHandling
         $options = array_map([ self::class, "sanitizeAlphanumeric"], $options);
 
         return self::startsWith($string, $options);
+    }
+
+    /**
+     * Returns whether the alphanumeric value of the given string ends with any of the supplied options.
+     *
+     * @param string $string
+     * @param string|string[] $optionOrOptions
+     * @param string[] ...$additionalOptions
+     * @return bool
+     */
+    public static function endsWithAlphanumeric($string, $optionOrOptions, ...$additionalOptions)
+    {
+        if (is_array($optionOrOptions)) {
+            $options = $optionOrOptions;
+        } else {
+            $options = array_merge([$optionOrOptions], $additionalOptions);
+        }
+
+        array_walk($options, function(&$option) {
+            $option = strrev($option);
+        });
+
+        return self::startsWithAlphanumeric(strrev($string), $options);
     }
 
     /**
