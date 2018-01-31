@@ -142,6 +142,14 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
     {
         chdir(__DIR__);
 
+        // Merge paths
+        self::assertEquals("foo/bar", DataHandling::mergePaths("foo", "bar"));
+        self::assertEquals("/foo/bar/", DataHandling::mergePaths("/foo/", "/bar/"));
+        self::assertEquals("/", DataHandling::mergePaths("/"));
+        self::assertEquals("/", DataHandling::mergePaths("/", "/"));
+        self::assertEquals("/foo/", DataHandling::mergePaths("/", "foo", "/"));
+        self::assertEquals("foo", DataHandling::mergePaths("", "/foo"));
+
         // Without resolving
         self::assertEquals("path/to/file", DataHandling::formatPath("path/to/file"));
         self::assertEquals("/path/to/file", DataHandling::formatPath("/././//.///path//to\\file"));
@@ -150,7 +158,6 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("../../path/file", DataHandling::formatPath("../../path//to/..\\file"));
         self::assertEquals("/file", DataHandling::formatPath("/././//.//path//to/..\\..\\file"));
 
-        // With resolving
         $sanitizedWorkingDirectory = DataHandling::formatAndResolveDirectory(__DIR__);
         self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("fixtures/directory/file.txt"));
         self::assertEquals($sanitizedWorkingDirectory . "fixtures/directory/file.txt", DataHandling::formatAndResolvePath("./fixtures/../fixtures//directory/file.txt"));

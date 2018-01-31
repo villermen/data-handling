@@ -630,7 +630,7 @@ class DataHandling
             }
         }
 
-        // Remove leading and trailing separators from parts to not end up with repeated separators
+        // Remove leading and trailing separators from parts to not end up with repeated separators (or root by non-first argument and empty root)
         array_walk($paths, function(&$path) {
             $path = str_replace("\\", "/", $path);
             $path = trim($path, "/");
@@ -639,7 +639,14 @@ class DataHandling
         // Remove empty parts to not end up with repeated separators
         $paths = array_filter($paths);
 
-        return $prefix . implode("/", $paths) . $suffix;
+        $path = implode("/", $paths);
+
+        // Only add suffix if there is a path, to prevent suffix from making root
+        if ($path) {
+            $path .= $suffix;
+        }
+
+        return $prefix . $path;
     }
 
     /**
