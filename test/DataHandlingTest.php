@@ -101,6 +101,8 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
     {
         self::assertEquals("asdfasdf", DataHandling::sanitizeAlphanumeric(" Asdf. aSD f-", $mapping));
         self::assertEquals([[0, 1], [4, 2], [7, 1], [8, 1]], $mapping);
+
+        self::assertEquals("string/with-extra-characters", DataHandling::sanitizeAlphanumeric("string/with-extra-characters", $mapping, "/-"));
     }
 
     public function testFindInString()
@@ -126,6 +128,14 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
 
         self::assertTrue(DataHandling::endsWith("some/String/", "ing/"));
         self::assertTrue(DataHandling::endsWithAlphanumeric("somestri Ng", "ing"));
+
+        self::assertFalse(DataHandling::startsWith("CAPITAL", ["cap", "cAP"]));
+        self::assertFalse(DataHandling::endsWith("CAPITAL", ["tal", "tAL"]));
+        self::assertTrue(DataHandling::endsWithInsensitive("aSDf", "sdf"));
+        self::assertTrue(DataHandling::startsWithInsensitive("asdf", "aSDF"));
+
+        self::assertTrue(DataHandling::endsWith(["string1", "string2"], ["ng1", "ng2"]));
+        self::assertFalse(DataHandling::startsWith(["anything"], []));
     }
 
     public function testFormatPathAndDirectory()
@@ -216,6 +226,8 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
 
         self::assertTrue(DataHandling::matchesFilterInsensitive("oNE\\TwO", "onE*t*"));
         self::assertFalse(DataHandling::matchesFilter("oNE\\TwO", "onE*t*"));
+
+        self::assertTrue(DataHandling::matchesFilterAlphanumeric("oNE\\T&wO", "*eTW?"));
     }
 
     public function testRemoveSchemeFromUri()

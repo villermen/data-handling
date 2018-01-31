@@ -10,6 +10,8 @@ namespace Villermen\DataHandling;
  */
 class DataHandling
 {
+    // TODO: Create meaningful exceptions
+
     const ACCENTED_CHARACTERS = [
         "È" => "e", "É" => "e", "Ê" => "e", "Ë" => "e", "è" => "e", "é" => "e", "ê" => "e", "ë" => "e",
         "Ì" => "i", "Í" => "i", "Î" => "i", "Ï" => "i", "ì" => "i", "í" => "i", "î" => "i", "ï" => "i",
@@ -200,13 +202,14 @@ class DataHandling
      *
      * @param string $string
      * @param int[] $mapping If set it will be filled by mapping information: Each array element denotes an offset and length of a removed part in the resulting string.
+     * @param string $additionalCharacters List of characters that is allowed in addition to alphanumeric characters.
      * @return string
      */
-    public static function sanitizeAlphanumeric($string, &$mapping = null)
+    public static function sanitizeAlphanumeric($string, &$mapping = null, $additionalCharacters = "")
     {
         $newString = str_replace(array_keys(self::ACCENTED_CHARACTERS), array_values(self::ACCENTED_CHARACTERS), $string);
         $newString = strtolower($newString);
-        $stringParts = preg_split("/[^a-z0-9]+/", $newString, -1, PREG_SPLIT_OFFSET_CAPTURE);
+        $stringParts = preg_split("/[^a-z0-9" . preg_quote($additionalCharacters, "/") . "]+/", $newString, -1, PREG_SPLIT_OFFSET_CAPTURE);
 
         $mapping = [];
         $result = "";
@@ -371,97 +374,117 @@ class DataHandling
     }
 
     /**
-     * Returns whether the value of the given string starts with any of the supplied options.
+     * Returns whether the value of the given strings start with any of the supplied options.
      *
-     * @param string $string
-     * @param string|string[] $optionOrOptions A string depicting a first
-     * @param string[] $additionalOptions Additional options, if the first option is a string.
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
      * @return bool
      */
-    public static function startsWith($string, $optionOrOptions, ...$additionalOptions)
+    public static function startsWith($stringOrStrings, $optionOrOptions)
     {
-        if (is_array($optionOrOptions)) {
-            $options = $optionOrOptions;
-        } else {
-            $options = array_merge([$optionOrOptions], $additionalOptions);
-        }
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, false, false);
+    }
 
-        foreach($options as $option) {
-            if (substr($string, 0, strlen($option)) === $option) {
-                return true;
+    /**
+     * Returns whether the value of the given strings end with any of the supplied options.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
+     * @return bool
+     */
+    public static function endsWith($stringOrStrings, $optionOrOptions)
+    {
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, false, false);
+    }
+
+    /**
+     * Returns whether the case insensitive value of the given strings start with any of the supplied options.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
+     * @return bool
+     */
+    public static function startsWithInsensitive($stringOrStrings, $optionOrOptions)
+    {
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, false, true);
+    }
+
+    /**
+     * Returns whether the case insensitive value of the given string ends with any of the supplied options.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
+     * @return bool
+     */
+    public static function endsWithInsensitive($stringOrStrings, $optionOrOptions)
+    {
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, false, true);
+    }
+
+    /**
+     * Returns whether the alphanumeric value of the given strings start with any of the supplied options.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions A string depicting a first
+     * @return bool
+     */
+    public static function startsWithAlphanumeric($stringOrStrings, $optionOrOptions)
+    {
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, true, false);
+    }
+
+    /**
+     * Returns whether the alphanumeric value of the given strings end with any of the supplied options.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
+     * @return bool
+     */
+    public static function endsWithAlphanumeric($stringOrStrings, $optionOrOptions)
+    {
+        return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, true, false);
+    }
+
+    /**
+     * Internal method used by all startsWith and endsWith methods to keep code in one place.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $optionOrOptions
+     * @param bool $matchEnd
+     * @param bool $alphanumeric
+     * @param bool $caseInsensitive
+     * @return bool
+     */
+    private static function startsWithInternal($stringOrStrings, $optionOrOptions, $matchEnd, $alphanumeric, $caseInsensitive)
+    {
+        $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
+        $options = is_array($optionOrOptions) ? $optionOrOptions : [$optionOrOptions];
+
+        foreach($strings as $string) {
+            $stringMatched = false;
+
+            if ($alphanumeric) {
+                $string = self::sanitizeAlphanumeric($string);
+            }
+
+            foreach($options as $option) {
+                if ($alphanumeric) {
+                    $option = self::sanitizeAlphanumeric($option);
+                }
+
+                if (strlen($option) <= strlen($string) && substr_compare($string, $option,
+                    $matchEnd ? -strlen($option) : 0, strlen($option), $caseInsensitive) === 0) {
+                    $stringMatched = true;
+                    break;
+                }
+            }
+
+            if (!$stringMatched) {
+                return false;
             }
         }
 
-        return false;
-    }
-
-    /**
-     * Returns whether the value of the given string ends with any of the supplied options.
-     *
-     * @param string $string
-     * @param string|string[] $optionOrOptions
-     * @param string[] $additionalOptions
-     * @return bool
-     */
-    public static function endsWith($string, $optionOrOptions, ...$additionalOptions)
-    {
-        if (is_array($optionOrOptions)) {
-            $options = $optionOrOptions;
-        } else {
-            $options = array_merge([$optionOrOptions], $additionalOptions);
-        }
-
-        array_walk($options, function(&$option) {
-            $option = strrev($option);
-        });
-
-        return self::startsWith(strrev($string), $options);
-    }
-
-    /**
-     * Returns whether the alphanumeric value of the given string starts with any of the supplied options.
-     *
-     * @param $string
-     * @param string|string[] $optionOrOptions A string depicting a first
-     * @param string[] $additionalOptions Additional options, if the first option is a string.
-     * @return bool
-     */
-    public static function startsWithAlphanumeric($string, $optionOrOptions, ...$additionalOptions)
-    {
-        if (is_array($optionOrOptions)) {
-            $options = $optionOrOptions;
-        } else {
-            $options = array_merge([$optionOrOptions], $additionalOptions);
-        }
-
-        // Convert both string and options to alphanumeric
-        $string = self::sanitizeAlphanumeric($string);
-        $options = array_map([ self::class, "sanitizeAlphanumeric"], $options);
-
-        return self::startsWith($string, $options);
-    }
-
-    /**
-     * Returns whether the alphanumeric value of the given string ends with any of the supplied options.
-     *
-     * @param string $string
-     * @param string|string[] $optionOrOptions
-     * @param string[] $additionalOptions
-     * @return bool
-     */
-    public static function endsWithAlphanumeric($string, $optionOrOptions, ...$additionalOptions)
-    {
-        if (is_array($optionOrOptions)) {
-            $options = $optionOrOptions;
-        } else {
-            $options = array_merge([$optionOrOptions], $additionalOptions);
-        }
-
-        array_walk($options, function(&$option) {
-            $option = strrev($option);
-        });
-
-        return self::startsWithAlphanumeric(strrev($string), $options);
+        return true;
     }
 
     /**
@@ -597,12 +620,12 @@ class DataHandling
         $suffix = "";
         if (count($paths) > 0) {
             // Save root for first path
-            if (self::startsWith($paths[0], "/", "\\")) {
+            if (self::startsWith($paths[0], ["/", "\\"])) {
                 $prefix = "/";
             }
 
             // Save separator for last path
-            if (self::endsWith($paths[count($paths) - 1], "/", "\\")) {
+            if (self::endsWith($paths[count($paths) - 1], ["/", "\\"])) {
                 $suffix = "/";
             }
         }
@@ -714,29 +737,77 @@ class DataHandling
     }
 
     /**
-     * Returns whether the given string matches against a filter.
-     * Filter can contain wildcard characters.
-     * Asterisk (*) matches anything.
-     * Question mark (?) matches precisely one character.
+     * Returns whether the given strings match any of the given filters.
+     * Filters can contain wildcard characters * and ?, where * matches anything and ? matches precisely one character.
      *
-     * @param string|string[] $stringOrStrings If multiple strings are given, all of them have to match any of the filters.
-     * @param string|string[] $filterOrFilters If multiple filters are given, true will be returned if any of them are matched.
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $filterOrFilters
      * @return bool
      */
     public static function matchesFilter($stringOrStrings, $filterOrFilters)
     {
+        return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, false, false);
+    }
+
+    /**
+     * Returns whether the given strings match any of the given filters in a case insensitive manner.
+     * Filters can contain wildcard characters * and ?, where * matches anything and ? matches precisely one character.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $filterOrFilters
+     * @return bool
+     */
+    public static function matchesFilterInsensitive($stringOrStrings, $filterOrFilters)
+    {
+        return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, false, true);
+    }
+
+    /**
+     * Returns whether the given strings match any of the given filters after both are sanitized alphanumerically
+     * Filters can contain wildcard characters * and ?, where * matches anything and ? matches precisely one character.
+     *
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $filterOrFilters
+     * @return bool
+     */
+    public static function matchesFilterAlphanumeric($stringOrStrings, $filterOrFilters)
+    {
+        return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, true, false);
+    }
+
+    /**
+     * @param string|string[] $stringOrStrings
+     * @param string|string[] $filterOrFilters
+     * @param bool $alphanumeric
+     * @param bool $caseInsensitive
+     * @return bool
+     */
+    private static function matchesFilterInternal($stringOrStrings, $filterOrFilters, $alphanumeric, $caseInsensitive)
+    {
         $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
         $filters = is_array($filterOrFilters) ? $filterOrFilters : [$filterOrFilters];
 
-        // Convert filters to regexes
-        array_walk($filters, function(&$filter) {
+        // Convert filters to regular expressions
+        array_walk($filters, function(&$filter) use ($alphanumeric, $caseInsensitive) {
+            if ($alphanumeric) {
+                $filter = self::sanitizeAlphanumeric($filter, $mapping, "*?");
+            }
+
             $filter = preg_quote($filter, "/");
             $filter = str_replace(["\\*", "\\?"], [".*", "."], $filter);
             $filter = "/^" . $filter . "$/";
+
+            if ($caseInsensitive) {
+                $filter .= "i";
+            }
         });
 
         foreach($strings as $string) {
             $stringMatched = false;
+
+            if ($alphanumeric) {
+                $string = self::sanitizeAlphanumeric($string);
+            }
 
             foreach($filters as $filter) {
                 if (preg_match($filter, $string)) {
@@ -751,24 +822,5 @@ class DataHandling
         }
 
         return true;
-    }
-
-    /**
-     * matchesFilter, but case-insensitive.
-     *
-     * @param $stringOrStrings
-     * @param $filterOrFilters
-     * @return bool
-     * @see DataHandling::matchesFilter
-     */
-    public static function matchesFilterInsensitive($stringOrStrings, $filterOrFilters)
-    {
-        $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
-        $filters = is_array($filterOrFilters) ? $filterOrFilters : [$filterOrFilters];
-
-        $strings = array_map("strtoupper", $strings);
-        $filters = array_map("strtoupper", $filters);
-
-        return self::matchesFilter($strings, $filters);
     }
 }
