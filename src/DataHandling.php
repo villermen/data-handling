@@ -181,7 +181,7 @@ class DataHandling
             $urlPart = str_replace(array_keys(self::ACCENTED_CHARACTERS), array_values(self::ACCENTED_CHARACTERS), $urlPart);
 
             // Collapse spaces, dashes and underscores into single dashes
-            $urlPart = preg_replace("/[\s-_]+/", "-", $urlPart);
+            $urlPart = preg_replace("/[\s\-_]+/", "-", $urlPart);
 
             $urlPart = strtolower($urlPart);
 
