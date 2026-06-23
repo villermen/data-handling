@@ -33,11 +33,8 @@ class DataHandling
 
     /**
      * Prefixes the url with a protocol if it has none, to prevent local lookups.
-     *
-     * @param string $url
-     * @return string|null
      */
-    public static function sanitizeUrl($url)
+    public static function sanitizeUrl(?string $url): ?string
     {
         $url = trim($url);
 
@@ -54,11 +51,8 @@ class DataHandling
 
     /**
      * Same as sanitizeString but allows linebreaks and strong and italic text.
-     *
-     * @param $text
-     * @return string|null
      */
-    public static function sanitizeText($text)
+    public static function sanitizeText(?string $text): ?string
     {
         if (!$text) {
             return null;
@@ -92,11 +86,8 @@ class DataHandling
     /**
      * Trims string, removes tags and linebreaks.
      * Returns null if string equals false, before or after conversion.
-     *
-     * @param $string
-     * @return string|null
      */
-    public static function sanitizeString($string)
+    public static function sanitizeString(?string $string): ?string
     {
         if (!$string) {
             return null;
@@ -111,23 +102,15 @@ class DataHandling
             return null;
         }
 
-        return (string)$string;
+        return $string;
     }
 
-    /**
-     * @param $number
-     * @return float|null
-     */
-    public static function sanitizeNumber($number)
+    public static function sanitizeNumber(?string $number): ?float
     {
         return (float)trim($number);
     }
 
-    /**
-     * @param $digits
-     * @return int|null
-     */
-    public static function sanitizeDigits($digits)
+    public static function sanitizeDigits(?string $digits): ?int
     {
         $digits = self::sanitizeString($digits);
         $digits = str_replace([" ", "-", "."], "", $digits);
@@ -140,7 +123,7 @@ class DataHandling
         return $digits;
     }
 
-    public static function sanitizeBoolean($boolean)
+    public static function sanitizeBoolean(?string $boolean): bool
     {
         $boolean = trim(strtolower($boolean));
 
@@ -163,9 +146,8 @@ class DataHandling
      *
      * @param string|string[] $urlPartOrUrlParts An array of parts or a single part.
      * @param string[] $additionalUrlParts Additional url parts, if the first argument is not an array.
-     * @return string
      */
-    public static function sanitizeUrlParts($urlPartOrUrlParts, ...$additionalUrlParts)
+    public static function sanitizeUrlParts(string|array $urlPartOrUrlParts, string ...$additionalUrlParts): string
     {
         if (is_array($urlPartOrUrlParts)) {
             $urlParts = $urlPartOrUrlParts;
@@ -200,12 +182,10 @@ class DataHandling
     /**
      * Will return only lowercase alphanumeric characters (converts accents).
      *
-     * @param string $string
      * @param int[] $mapping If set it will be filled by mapping information: Each array element denotes an offset and length of a removed part in the resulting string.
      * @param string $additionalCharacters List of characters that is allowed in addition to alphanumeric characters.
-     * @return string
      */
-    public static function sanitizeAlphanumeric($string, &$mapping = null, $additionalCharacters = "")
+    public static function sanitizeAlphanumeric(?string $string, ?array &$mapping = null, string $additionalCharacters = ""): string
     {
         $newString = str_replace(array_keys(self::ACCENTED_CHARACTERS), array_values(self::ACCENTED_CHARACTERS), $string);
         $newString = strtolower($newString);
@@ -243,12 +223,10 @@ class DataHandling
      * Advanced stripos() that matches the target string based on only its mapped alphanumeric characters.
      * Both haystack and needle will be sanitizeAlphanumeric'd and, if a match is found, the start position and length in the original string will be returned.
      *
-     * @param string $haystack
-     * @param string $needle
      * @param bool $expand Whether non-alphanumeric characters are to be included in the result.
-     * @return false|\int[]
+     * @return int[]|false
      */
-    public static function findInString($haystack, $needle, $expand = false)
+    public static function findInString(string $haystack, string $needle, bool $expand = false): array|false
     {
         $alphaHaystack = self::sanitizeAlphanumeric($haystack, $haystackMapping);
         $alphaNeedle = self::sanitizeAlphanumeric($needle);
@@ -287,13 +265,11 @@ class DataHandling
     }
 
     /**
-     * @param float $number
      * @param float $min Inclusive lower bound.
      * @param float $max Inclusive upper bound.
-     * @param string $name
      * @throws DataHandlingException
      */
-    public static function validateInRange($number, $min, $max, $name = "value")
+    public static function validateInRange(?float $number, float $min, float $max, string $name = "value"): void
     {
         if ($number < $min || $number > $max) {
             throw new DataHandlingException("\"{$name}\" is not in the range of {$min}-{$max}.");
@@ -301,12 +277,10 @@ class DataHandling
     }
 
     /**
-     * @param mixed $value
      * @param mixed[] $options
-     * @param string $name
      * @throws DataHandlingException
      */
-    public static function validateInArray($value, $options, $name = "value")
+    public static function validateInArray(mixed $value, array $options, string $name = "value"): void
     {
         if ($value === null || !in_array($value, $options)) {
             throw new DataHandlingException("\"{$value}\" is not a valid value for \"{$name}\".");
@@ -316,11 +290,9 @@ class DataHandling
     /**
      * Explodes a string into an array after performing sanitization on each element.
      *
-     * @param string $string
-     * @param string $characters
      * @return string[]
      */
-    public static function explode($string, $characters = ";>|/\\<")
+    public static function explode(string $string, string $characters = ";>|/\\<"): array
     {
         $string = self::sanitizeString($string);
 
@@ -329,10 +301,7 @@ class DataHandling
         }
 
         // Convert characters into a safe regular expression
-        $splitRegex = "";
-        for ($i = 0; $i < strlen($characters); $i++) {
-            $splitRegex .= "\\" . $characters[$i];
-        }
+        $splitRegex = preg_quote($characters, "/");
         $splitRegex = "/[" . $splitRegex . "]/";
 
         $rawElements = preg_split($splitRegex, $string);
@@ -352,10 +321,8 @@ class DataHandling
      * Implodes an array into a string after performing sanitization on each element.
      *
      * @param string[] $array
-     * @param string $separator
-     * @return string
      */
-    public static function implode($array, $separator = " > ")
+    public static function implode(array $array, string $separator = " > "): string
     {
         if ($array === null) {
             return "";
@@ -378,9 +345,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @return bool
      */
-    public static function startsWith($stringOrStrings, $optionOrOptions)
+    public static function startsWith(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, false, false);
     }
@@ -390,9 +356,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @return bool
      */
-    public static function endsWith($stringOrStrings, $optionOrOptions)
+    public static function endsWith(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, false, false);
     }
@@ -402,9 +367,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @return bool
      */
-    public static function startsWithInsensitive($stringOrStrings, $optionOrOptions)
+    public static function startsWithInsensitive(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, false, true);
     }
@@ -414,9 +378,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @return bool
      */
-    public static function endsWithInsensitive($stringOrStrings, $optionOrOptions)
+    public static function endsWithInsensitive(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, false, true);
     }
@@ -426,9 +389,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions A string depicting a first
-     * @return bool
      */
-    public static function startsWithAlphanumeric($stringOrStrings, $optionOrOptions)
+    public static function startsWithAlphanumeric(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, false, true, false);
     }
@@ -438,9 +400,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @return bool
      */
-    public static function endsWithAlphanumeric($stringOrStrings, $optionOrOptions)
+    public static function endsWithAlphanumeric(string|array $stringOrStrings, string|array $optionOrOptions): bool
     {
         return self::startsWithInternal($stringOrStrings, $optionOrOptions, true, true, false);
     }
@@ -450,12 +411,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $optionOrOptions
-     * @param bool $matchEnd
-     * @param bool $alphanumeric
-     * @param bool $caseInsensitive
-     * @return bool
      */
-    private static function startsWithInternal($stringOrStrings, $optionOrOptions, $matchEnd, $alphanumeric, $caseInsensitive)
+    private static function startsWithInternal(string|array $stringOrStrings, string|array $optionOrOptions, bool $matchEnd, bool $alphanumeric, bool $caseInsensitive): bool
     {
         $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
         $options = is_array($optionOrOptions) ? $optionOrOptions : [$optionOrOptions];
@@ -490,11 +447,9 @@ class DataHandling
     /**
      * Removes the scheme (e.g. ftp://) from an URI, and returns the stripped URI.
      *
-     * @param string $uri
      * @param string $scheme Will contain the full stripped scheme (including the ://), or an empty string if there was no scheme in the given URI.
-     * @return string
      */
-    public static function removeSchemeFromUri($uri, &$scheme = "")
+    public static function removeSchemeFromUri(string $uri, ?string &$scheme = ""): string
     {
         $scheme = "";
 
@@ -506,11 +461,8 @@ class DataHandling
 
     /**
      * Encodes a full URI, leaving the slashes and scheme intact.
-     *
-     * @param string $uri
-     * @return string
      */
-    public static function encodeUri($uri)
+    public static function encodeUri(string $uri): string
     {
         $uri = self::removeSchemeFromUri($uri, $scheme);
         $uri = rawurlencode($uri);
@@ -526,10 +478,8 @@ class DataHandling
      * Multiple paths can be given and will be concatenated.
      *
      * @param string|string[] $pathOrPaths
-     * @param string[] $additionalPaths
-     * @return string
      */
-    public static function formatPath($pathOrPaths, ...$additionalPaths)
+    public static function formatPath(string|array $pathOrPaths, string ...$additionalPaths): string
     {
         $path = rawurldecode(self::mergePaths($pathOrPaths, ...$additionalPaths));
         $path = self::removeSchemeFromUri($path, $scheme);
@@ -582,11 +532,9 @@ class DataHandling
      * Resolves and formats a path.
      *
      * @param string|string[] $pathOrPaths
-     * @param string[] $additionalPaths
-     * @return string
      * @throws DataHandlingException
      */
-    public static function formatAndResolvePath($pathOrPaths, ...$additionalPaths)
+    public static function formatAndResolvePath(string|array $pathOrPaths, string ...$additionalPaths): string
     {
         $path = rawurldecode(self::mergePaths($pathOrPaths, ...$additionalPaths));
         $path = realpath($path);
@@ -603,10 +551,8 @@ class DataHandling
      * Only the first argument can cause the path to become absolute.
      *
      * @param string|string[] $pathOrPaths
-     * @param string[] $additionalPaths
-     * @return string
      */
-    public static function mergePaths($pathOrPaths, ...$additionalPaths)
+    public static function mergePaths(string|array $pathOrPaths, string ...$additionalPaths): string
     {
         if (is_array($pathOrPaths)) {
             $paths = $pathOrPaths;
@@ -652,12 +598,9 @@ class DataHandling
     /**
      * Makes given path relative to the given root directory.
      *
-     * @param string $path
-     * @param string $rootDirectory
-     * @return string
      * @throws DataHandlingException Thrown when the path is not part of the given root directory.
      */
-    public static function makePathRelative($path, $rootDirectory)
+    public static function makePathRelative(string $path, string $rootDirectory): string
     {
         $rootDirectory = self::formatDirectory($rootDirectory);
         $path = self::formatPath($path);
@@ -674,10 +617,8 @@ class DataHandling
      * Basically formatPath but with a trailing slash.
      *
      * @param string|string[] $pathOrPaths
-     * @param string[] $additionalPaths
-     * @return string
      */
-    public static function formatDirectory($pathOrPaths, ...$additionalPaths)
+    public static function formatDirectory(string|array $pathOrPaths, string ...$additionalPaths): string
     {
         $directory = self::formatPath($pathOrPaths, ...$additionalPaths);
 
@@ -691,12 +632,9 @@ class DataHandling
     /**
      * Resolves and formats a directory.
      *
-     * @param string|string[] $pathOrPaths
-     * @param string[] $additionalPaths
-     * @return string
      * @throws DataHandlingException
      */
-    public static function formatAndResolveDirectory($pathOrPaths, ...$additionalPaths)
+    public static function formatAndResolveDirectory(string|array $pathOrPaths, string ...$additionalPaths): string
     {
         $directory = self::formatAndResolvePath($pathOrPaths, ...$additionalPaths);
 
@@ -709,11 +647,8 @@ class DataHandling
 
     /**
      * Returns a suffixed and shortened indication of an amount of bytes.
-     *
-     * @param int $size
-     * @return string
      */
-    public static function formatBytesize($size)
+    public static function formatBytesize(int $size): string
     {
         $suffixes = [
             "B", "KiB", "MiB", "GiB", "TiB" //, "PiB", "EiB", "ZiB", "YiB"
@@ -749,9 +684,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $filterOrFilters
-     * @return bool
      */
-    public static function matchesFilter($stringOrStrings, $filterOrFilters)
+    public static function matchesFilter(string|array $stringOrStrings, string|array $filterOrFilters): bool
     {
         return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, false, false);
     }
@@ -762,9 +696,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $filterOrFilters
-     * @return bool
      */
-    public static function matchesFilterInsensitive($stringOrStrings, $filterOrFilters)
+    public static function matchesFilterInsensitive(string|array $stringOrStrings, string|array $filterOrFilters): bool
     {
         return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, false, true);
     }
@@ -775,9 +708,8 @@ class DataHandling
      *
      * @param string|string[] $stringOrStrings
      * @param string|string[] $filterOrFilters
-     * @return bool
      */
-    public static function matchesFilterAlphanumeric($stringOrStrings, $filterOrFilters)
+    public static function matchesFilterAlphanumeric(string|array $stringOrStrings, string|array $filterOrFilters): bool
     {
         return self::matchesFilterInternal($stringOrStrings, $filterOrFilters, true, false);
     }
@@ -785,11 +717,8 @@ class DataHandling
     /**
      * @param string|string[] $stringOrStrings
      * @param string|string[] $filterOrFilters
-     * @param bool $alphanumeric
-     * @param bool $caseInsensitive
-     * @return bool
      */
-    private static function matchesFilterInternal($stringOrStrings, $filterOrFilters, $alphanumeric, $caseInsensitive)
+    private static function matchesFilterInternal(string|array $stringOrStrings, string|array $filterOrFilters, bool $alphanumeric, bool $caseInsensitive): bool
     {
         $strings = is_array($stringOrStrings) ? $stringOrStrings : [$stringOrStrings];
         $filters = is_array($filterOrFilters) ? $filterOrFilters : [$filterOrFilters];

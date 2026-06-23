@@ -1,28 +1,29 @@
 <?php
 
+use PHPUnit\Framework\TestCase;
 use Villermen\DataHandling\DataHandling;
 use Villermen\DataHandling\DataHandlingException;
 
-class DataHandlingTest extends PHPUnit_Framework_TestCase
+class DataHandlingTest extends TestCase
 {
-    public function testExplode()
+    public function testExplode(): void
     {
         self::assertEquals(["Foo", "Bar", "Baz"], DataHandling::explode("Foo > Bar <   \\Baz "));
         self::assertEquals(["Foo", "Bar", "Baz"], DataHandling::explode("Foo k Bar j Baz", "kj"));
         self::assertEquals(["Foo", "Bar &  Baz"], DataHandling::explode("Foo ;  Bar &amp;  Baz"));
     }
 
-    public function testImplode()
+    public function testImplode(): void
     {
         self::assertEquals("Foo -Bar -Baz", DataHandling::implode([4 => "Foo", 3 => "Bar", "Baz"], " -"));
     }
 
-    public function testSanitizeUrl()
+    public function testSanitizeUrl(): void
     {
         self::assertEquals("https://whatever.whatever", DataHandling::sanitizeUrl("https://whatever.whatever"));
     }
 
-    public function testSanitizeString()
+    public function testSanitizeString(): void
     {
         self::assertEquals("awesome teXt-", DataHandling::sanitizeString("   awesome teXt-   "));
         self::assertEquals("actually read able", DataHandling::sanitizeString("actually\nread\r\nable"));
@@ -31,61 +32,72 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("entity & decoding", DataHandling::sanitizeString("entity &amp; decoding"));
     }
 
-    public function testSanitizeText()
+    public function testSanitizeText(): void
     {
         self::assertEquals("<b>Text</b><br><i>Text</i>", DataHandling::sanitizeText("<b>Text</b><br><i>Text</i>"));
         self::assertEquals("derr", DataHandling::sanitizeText("<script><p>derr</p></script>"));
     }
 
-    public function testSanitizeDigits()
+    public function testSanitizeDigits(): void
     {
         self::assertEquals(8, DataHandling::sanitizeDigits("8a7s9f87"));
         self::assertEquals(782634234, DataHandling::sanitizeDigits("78.2634 2-34"));
     }
 
-    public function testValidateInRange()
+    public function testValidateInRange(): void
     {
         DataHandling::validateInRange(1.0, 1, 5);
+        $this->addToAssertionCount(1);
+
         DataHandling::validateInRange(1.0, 1, 5);
+        $this->addToAssertionCount(1);
 
         try {
             DataHandling::validateInRange(5.1, 1, 5);
             self::fail();
         } catch (DataHandlingException $exception) {
+            $this->addToAssertionCount(1);
         }
 
         try {
             DataHandling::validateInRange(0.99999, 1, 5);
             self::fail();
         } catch (DataHandlingException $exception) {
+            $this->addToAssertionCount(1);
         }
 
         try {
             DataHandling::validateInRange(null, 1, 5) ;
             self::fail();
         } catch (DataHandlingException $exception) {
+            $this->addToAssertionCount(1);
         }
     }
 
-    public function testValidateInArray()
+    public function testValidateInArray(): void
     {
         DataHandling::validateInArray(5, [ 0, 5, 0]);
+        $this->addToAssertionCount(1);
+
         DataHandling::validateInArray(5, [ 0, "5", 0]);
+        $this->addToAssertionCount(1);
 
         try {
             DataHandling::validateInArray(4, [ 5, 0, 5]);
             self::fail();
         } catch (DataHandlingException $exception) {
+            $this->addToAssertionCount(1);
         }
 
         try {
             DataHandling::validateInArray(null, [ 5, null, 5]);
             self::fail();
         } catch (DataHandlingException $exception) {
+            $this->addToAssertionCount(1);
         }
     }
 
-    public function testSanitizeUrlParts()
+    public function testSanitizeUrlParts(): void
     {
         self::assertEquals("sseyzdj", DataHandling::sanitizeUrlParts("ßÈÿžÐ"));
         self::assertEquals("asdf-asdf", DataHandling::sanitizeUrlParts(" aSDF   asdf   "));
@@ -97,7 +109,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("baz//bar", DataHandling::sanitizeUrlParts(["baz", "---- ", "bar"]));
     }
 
-    public function testSanitizeAlphanumeric()
+    public function testSanitizeAlphanumeric(): void
     {
         self::assertEquals("asdfasdf", DataHandling::sanitizeAlphanumeric(" Asdf. aSD f-", $mapping));
         self::assertEquals([[0, 1], [4, 2], [7, 1], [8, 1]], $mapping);
@@ -105,7 +117,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("string/with-extra-characters", DataHandling::sanitizeAlphanumeric("string/with-extra-characters", $mapping, "/-"));
     }
 
-    public function testFindInString()
+    public function testFindInString(): void
     {
         self::assertEquals([7, 6], DataHandling::findInString("AAaA._.ABa._Ab_._", "ABaa"));
 
@@ -118,7 +130,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("irrelevant-textirrelevant-text---match-text--", substr($haystack, 0, $match[0]) . substr($haystack, $match[0] + $match[1]));
     }
 
-    public function testStartsAndEndsWith()
+    public function testStartsAndEndsWith(): void
     {
         self::assertTrue(DataHandling::startsWith("some/String/", "some/S"));
         self::assertFalse(DataHandling::startsWith("some/string/", "some/S"));
@@ -138,7 +150,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertFalse(DataHandling::startsWith(["anything"], []));
     }
 
-    public function testFormatPathAndDirectory()
+    public function testFormatPathAndDirectory(): void
     {
         chdir(__DIR__);
 
@@ -179,7 +191,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("", DataHandling::mergePaths([]));
     }
 
-    public function testMakePathRelative()
+    public function testMakePathRelative(): void
     {
         self::assertEquals("file", DataHandling::makePathRelative("/path/to/file", "/path/to"));
         self::assertEquals("file", DataHandling::makePathRelative("/path/to/file", "/path/to/"));
@@ -196,7 +208,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testFormatBytesize()
+    public function testFormatBytesize(): void
     {
         self::assertEquals("1023 B", DataHandling::formatBytesize(1023));
         self::assertEquals("1 KiB", DataHandling::formatBytesize(1024));
@@ -205,7 +217,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("0 B", DataHandling::formatBytesize(0));
     }
 
-    public function testMatchesFilter()
+    public function testMatchesFilter(): void
     {
         self::assertTrue(DataHandling::matchesFilter("asdf", "*asdf"));
         self::assertTrue(DataHandling::matchesFilter(" sdf", "*sdf"));
@@ -237,7 +249,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertTrue(DataHandling::matchesFilterAlphanumeric("oNE\\T&wO", "*eTW?"));
     }
 
-    public function testRemoveSchemeFromUri()
+    public function testRemoveSchemeFromUri(): void
     {
         self::assertEquals("test.com/test", DataHandling::removeSchemeFromUri("https://test.com/test", $scheme));
         self::assertEquals("https://", $scheme);
@@ -255,7 +267,7 @@ class DataHandlingTest extends PHPUnit_Framework_TestCase
         self::assertEquals("some+weird-protocol://", $scheme);
     }
 
-    public function testEncodeUri()
+    public function testEncodeUri(): void
     {
         self::assertEquals("https://test.com/%E2%82%AC%27%20%C3%A9%2B%C3%BF%E2%82%AC", DataHandling::encodeUri("https://test.com/€' é+ÿ€"));
     }
