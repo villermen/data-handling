@@ -1,6 +1,6 @@
 # villermen/data-handling
 PHP library with general data sanitization and formatting utilities.
-Contains utility methods not otherwise contained in framework components that I see myself needing often.
+Contains utility methods not otherwise contained in framework components that I see myself needing at times.
 My "functions.php", if you will.
 
 ## Examples
