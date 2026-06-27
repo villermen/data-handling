@@ -5,17 +5,12 @@ use Villermen\DataHandling\Clean;
 
 class CleanTest extends TestCase
 {
-    public function testString(): void
-    {
-        self::assertSame('awesome teXt-', Clean::string('   awesome teXt-   '));
-        self::assertSame('actually read able', Clean::string("actually\nread\r\nable"));
-        self::assertSame('endlinebreak', Clean::string("endlinebreak\n"));
-        self::assertSame('no HTML =<', Clean::string('<i>no</span> <b>HTML</b> =<  <br>'));
-        self::assertSame('entity & decoding', Clean::string('entity &amp; decoding'));
-    }
-
     public function testText(): void
     {
+        self::assertSame('awesome teXt-', Clean::text('   awesome teXt-   '));
+        self::assertSame("with\nline\nbreaks\n\n", Clean::text("with\r\nline\rbreaks\n\r"));
+        self::assertSame('no HTML =<', Clean::text('<i>no</span> <b>HTML</b> =<  <br>'));
+        self::assertSame('entity & decoding', Clean::text('entity &amp; decoding'));
         self::assertSame("<b>Text</b><br>\n<i>Text</i>", Clean::text("<b>Text</b><br>\n<i>Text</i>", ['b','br','i']));
         self::assertSame("derr \n", Clean::text("<script><p><b>derr</b></p> \n</script>"));
     }

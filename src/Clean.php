@@ -27,40 +27,28 @@ class Clean
     ];
 
     /**
-     * Trims and removes HTML tags and linebreaks from `$text`.
-     */
-    public static function string(string $string): string
-    {
-        $string = str_ireplace(["\r\n", "\n", "\r"], ' ', $string);
-        $string = html_entity_decode($string, ENT_NOQUOTES, 'UTF-8');
-        return trim(strip_tags($string));
-    }
-
-    /**
-     * Same as {@see cleanString()} but allows linebreaks and an optional set of HTML tags. Does not support tags with
-     * attributes.
+     * Trims and removes HTML tags from `$text`. Linebreaks are preserved, along with an optional set of simple HTML
+     * tags that can't have any attributes.
      */
     public static function text(string $text, array $allowedTags = []): string
     {
         $marker = '\&8slkc7\\';
 
         // Convert to non-HTML before cleaning and then revert.
-        $allowedTagConversion = [];
+        $conversions = [];
         foreach($allowedTags as $allowedTagName) {
-            $allowedTagConversion["<{$allowedTagName}>"] = $marker . $allowedTagName . '-1';
-            $allowedTagConversion["<{$allowedTagName}/>"] = $marker . $allowedTagName . '-2';
-            $allowedTagConversion["<{$allowedTagName} />"] = $marker . $allowedTagName . '-3';
-            $allowedTagConversion["</{$allowedTagName}>"] = $marker . $allowedTagName . '-4';
+            $conversions["<{$allowedTagName}>"] = $marker . $allowedTagName . '-1';
+            $conversions["<{$allowedTagName}/>"] = $marker . $allowedTagName . '-2';
+            $conversions["<{$allowedTagName} />"] = $marker . $allowedTagName . '-3';
+            $conversions["</{$allowedTagName}>"] = $marker . $allowedTagName . '-4';
         }
-        $allowedTagConversion["\r\n"] = $marker . ':rn';
-        $allowedTagConversion["\n"] = $marker . ':n';
-        $allowedTagConversion["\r"] = $marker . ':r';
+        $conversions["\n"] = $marker . ':n';
 
-        $text = str_ireplace(array_keys($allowedTagConversion), array_values($allowedTagConversion), $text);
-
-        $text = self::string($text);
-
-        return str_ireplace(array_values($allowedTagConversion), array_keys($allowedTagConversion), $text);
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $text = str_ireplace(array_keys($conversions), array_values($conversions), $text);
+        $text = html_entity_decode($text, ENT_NOQUOTES, 'UTF-8');
+        $text = trim(strip_tags($text), ' ');
+        return str_ireplace(array_values($conversions), array_keys($conversions), $text);
     }
 
     /**
