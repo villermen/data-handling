@@ -7,6 +7,8 @@ class Filter
     /**
      * Returns whether `$string` matches `$filter`. Filter can contain wildcard characters * and ?, where * matches
      * anything and ? matches precisely one character.
+     *
+     * TODO: What about `fnmatch()`?
      */
     public static function match(string $string, string $filter): bool
     {
