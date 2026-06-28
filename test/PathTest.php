@@ -12,7 +12,14 @@ class PathTest extends TestCase
         self::assertSame('../path/to/file', Path::format('../path//to\\file'));
         self::assertSame('/path/to/file', Path::format('/././//.//../path//to\\file'));
         self::assertSame('../../path/file', Path::format('../../path//to/..\\file'));
-        self::assertSame('/file', Path::format('/././//.//path//to/..\\..\\file'));
+        self::assertSame('/file/', Path::format('/././//.//path//to/..\\..\\file/'));
+
+        self::assertSame('foo/bar', Path::format('foo', 'bar'));
+        self::assertSame('/foo/bar/', Path::format('/foo/', '/bar/'));
+        self::assertSame('/', Path::format('/'));
+        self::assertSame('/', Path::format('/', '/'));
+        self::assertSame('/foo/', Path::format('/', 'foo', '/'));
+        self::assertSame('foo', Path::format('', '/foo'));
     }
 
     public function testMakeRelative(): void
@@ -25,16 +32,6 @@ class PathTest extends TestCase
         self::assertSame('', Path::makeRelative('/', '/'));
         self::assertSame('file', Path::makeRelative('/path/../path/to/./file', '/path/to/../to/./'));
         self::assertNull(Path::makeRelative('/path/to', '/path/to/file'));
-    }
-    
-    public function testMerge(): void
-    {
-        self::assertSame('foo/bar', Path::merge('foo', 'bar'));
-        self::assertSame('/foo/bar/', Path::merge('/foo/', '/bar/'));
-        self::assertSame('/', Path::merge('/'));
-        self::assertSame('/', Path::merge('/', '/'));
-        self::assertSame('/foo/', Path::merge('/', 'foo', '/'));
-        self::assertSame('foo', Path::merge('', '/foo'));
     }
 
     public function testFormatFilesize(): void

@@ -5,9 +5,59 @@ namespace Villermen\DataHandling;
 class Path
 {
     /**
-     * Formats a file path to a uniform representation. Removes path-relative components.
+     * Merges path parts into one formatted path. Only the first argument can cause the path to become absolute.
      */
-    public static function format(string $path): string
+    public static function format(string ...$paths): string
+    {
+        $prefix = '';
+        $suffix = '';
+        foreach ($paths as $i => &$path) {
+            $path = self::formatPart($path);
+
+            // Allow only first path to add root prefix.
+            if ($i === array_key_first($paths) && str_starts_with($path, '/')) {
+                $prefix = '/';
+            }
+
+            // Allow only last part to add directory suffix.
+            if ($i === array_key_last($paths) && str_ends_with($path, '/')) {
+                $suffix = '/';
+            }
+
+            $path = trim($path, '/');
+        }
+
+        // Glue non-empty paths back together.
+        $path = implode('/', array_filter($paths));
+
+        // Remove suffix if there is no path to prevent it from making root.
+        if ($path === '') {
+            $suffix = '';
+        }
+
+        return $prefix . $path . $suffix;
+    }
+
+    /**
+     * @deprecated Use {@see format()} with a slash for the last argument.
+     */
+    public static function formatDirectory(string $path): string
+    {
+        return self::format($path, '/');
+    }
+
+    /**
+     * @deprecated Replaced by {@see format()}.
+     */
+    public static function merge(string ...$path): string
+    {
+        return self::format(...$path);
+    }
+
+    /**
+     * Formats a path part to a uniform representation. Removes path-relative components.
+     */
+    private static function formatPart(string $path): string
     {
         $path = str_replace("\\", "/", $path);
 
@@ -54,56 +104,14 @@ class Path
     }
 
     /**
-     * Formats a directory path to a uniform representation. Basically {@see formatPath()} but with a trailing slash.
-     */
-    public static function formatDirectory(string $path): string
-    {
-        return self::merge($path, '/');
-    }
-
-    /**
-     * Merges path parts into one formatted path. Only the first argument can cause the path to become absolute.
-     */
-    public static function merge(string ...$paths): string
-    {
-        $prefix = '';
-        $suffix = '';
-        foreach ($paths as $i => &$path) {
-            $path = self::format($path);
-
-            // Allow only first path to add root prefix.
-            if ($i === array_key_first($paths) && str_starts_with($path, '/')) {
-                $prefix = '/';
-            }
-
-            // Allow only last part to add directory suffix.
-            if ($i === array_key_last($paths) && str_ends_with($path, '/')) {
-                $suffix = '/';
-            }
-
-            $path = trim($path, '/');
-        }
-
-        // Glue non-empty paths back together.
-        $path = implode('/', array_filter($paths));
-
-        // Remove suffix if there is no path to prevent it from making root.
-        if ($path === '') {
-            $suffix = '';
-        }
-
-        return $prefix . $path . $suffix;
-    }
-
-    /**
      * Makes given `$path` relative to the given `$rootPath`. Returns `null` when `$path` is not part of `$rootPath`.
      */
     public static function makeRelative(string $path, string $rootPath): ?string
     {
-        $rootPath = self::formatDirectory($rootPath);
+        $rootPath = self::format($rootPath, '/');
         $path = self::format($path);
 
-        if (!str_starts_with(self::formatDirectory($path), $rootPath)) {
+        if (!str_starts_with(self::format($path, '/'), $rootPath)) {
             return null;
         }
 
