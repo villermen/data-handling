@@ -58,12 +58,7 @@ class Path
      */
     public static function formatDirectory(string $path): string
     {
-        $directory = self::format($path);
-        if ($directory === '') {
-            return '';
-        }
-
-        return rtrim($directory, '/') . '/';
+        return self::merge($path, '/');
     }
 
     /**
