@@ -5,7 +5,8 @@ namespace Villermen\DataHandling;
 class Path
 {
     /**
-     * Merges path parts into one formatted path. Only the first argument can cause the path to become absolute.
+     * Formats a path into a uniform representation, removing path-relative components. Additional paths will be merged.
+     * Only the first argument can cause the path to become absolute.
      */
     public static function format(string ...$paths): string
     {
@@ -54,9 +55,6 @@ class Path
         return self::format(...$path);
     }
 
-    /**
-     * Formats a path part to a uniform representation. Removes path-relative components.
-     */
     private static function formatPart(string $path): string
     {
         $path = str_replace("\\", "/", $path);
