@@ -69,8 +69,7 @@ class Clean
     }
 
     /**
-     * Sanitize, or SEOify url part.
-     * Will result in a string with only dashes, dots and alphanumeric characters.
+     * Sanitize, or SEOify url part. Results in a string with only dashes, dots and alphanumeric characters.
      */
     public static function slug(string $slug): string
     {
@@ -89,5 +88,25 @@ class Clean
     public static function digits(string $digits): string
     {
         return preg_replace('/[^0-9]+/', '', $digits);
+    }
+
+    /**
+     * URL-encodes a full URL, leaving slashes and scheme in tact.
+     */
+    public static function url(string $url): string
+    {
+        if (!preg_match('~^([a-zA-Z0-9+\.\-]*://[^/]*)?([^\?#]*)(.*)$~', $url, $matches)) {
+            return $url;
+        }
+
+        // Host won't be matched if there's no scheme, but that's still miles better than whatever `parse_url()` spits
+        // out.
+        $schemeHost = $matches[1];
+        $path = $matches[2];
+        $query = $matches[3];
+
+        $path = implode('/', array_map('rawurlencode', explode('/', $path)));
+
+        return $schemeHost . $path . $query;
     }
 }

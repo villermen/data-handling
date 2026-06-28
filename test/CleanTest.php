@@ -30,6 +30,15 @@ class CleanTest extends TestCase
         self::assertSame('asdf', Clean::slug('as/df'));
     }
 
+    public function testUrl(): void
+    {
+        self::assertSame('https://example.org/path%20%26%20to/file.txt?query=value', Clean::url('https://example.org/path & to/file.txt?query=value'));
+        self::assertSame('://example.org/path%20%26%20to/file.txt?query=value', Clean::url('://example.org/path & to/file.txt?query=value'));
+        self::assertSame('example.org/path%20%26%20to/file.txt', Clean::url('example.org/path & to/file.txt'));
+        self::assertSame('path%20%26%20to/file.txt', Clean::url('path & to/file.txt'));
+        self::assertSame('%26', Clean::url('&'));
+    }
+
     public function testAlphanumeric(): void
     {
         self::assertSame('asdfasdf', Clean::alphanumeric(' Asdf. aSD f-'));
